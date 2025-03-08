@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
 import { IoSend } from "react-icons/io5";
+import Button from "./components/Button";
+import Banner from "./components/Banner";
+import Popup from "./components/Popup";
+import ChatInterface from "./components/ChatInterface"; // Import the ChatInterface component
 
 const socket = io(import.meta.env.VITE_SOCKET_URL);
 
@@ -12,7 +16,8 @@ const App = () => {
   const [partnerDisconnected, setPartnerDisconnected] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [showPopup1, setShowPopup1] = useState(false);
-  const [showDisclaimer, setShowDisclaimer] = useState(true); // State for disclaimer popup
+  const [showDisclaimer, setShowDisclaimer] = useState(true);
+  const [showFinfMatches, setShowFinfMatches] = useState(false);
   const messagesEndRef = useRef(null);
 
   // Create a ref for the audio element
@@ -98,115 +103,82 @@ const App = () => {
     socket.emit("findNewChatFromDisconnect");
     setPartnerDisconnected(false);
     setShowPopup1(false);
+    setShowFinfMatches(false);
+  };
+
+  const handleFindMatch = () => {
+    setShowDisclaimer(false);
+    setShowFinfMatches(true);
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#212121] to-gray-200 p-4 text-gray-800">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-[#F8D6B3] to-gray-200 text-gray-800">
       {/* Disclaimer Popup */}
       {showDisclaimer && (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50">
-        <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-          <h2 className="text-2xl font-bold mb-4 text-gray-800">Disclaimer</h2>
+        <Popup
+          show={showDisclaimer}
+          title="Disclaimer"
+          onConfirm={handleFindMatch}
+          confirmLabel="Faham, bro!"
+          confirmColor="blue"
+        >
           <p className="text-gray-600 mb-6">
-            Bro, chat app ni just untuk hiburan je. Jangan sesekali share info peribadi atau benda sensitif, okay?  
-            Jangan spread negativity. Jangan guna perkataan kesat ataupun lucah. Jangan cakap abang tak warning.
-            .
+            Bro, chat app ni just untuk hiburan je. <br /> Jangan sesekali share info peribadi atau benda sensitif, okay? <br />  
+            Jangan spread negativity. <br /> Jangan guna perkataan kesat ataupun lucah. <br />Jangan cakap abang tak warning.
           </p>
-          <button
-            onClick={() => setShowDisclaimer(false)}
-            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
-          >
-            Faham, bro!
-          </button>
-        </div>
-      </div>
-    )}
-
+          
+        </Popup>
+      )}
 
       {/* Banner Section */}
-      <div className="w-full max-w-lg mb-6 bg-white p-4 rounded-xl shadow-lg text-center">
-        <h1 className="text-3xl font-bold text-gray-800">Mai Sembang</h1>
-      </div>
+      <Banner />
 
       {/* Chat Interface */}
-      <div className="w-full max-w-lg bg-white rounded-xl shadow-md border-4 border-gray-300 p-6">
-        <div className="bg-gray-200 p-4 rounded-lg text-center text-gray-800 font-semibold text-lg">
-          {isMatched
-            ? "Borak ah dah connect!"
-            : partnerDisconnected
-            ? "Member dah cabut!"
-            : "Cari member jap..."}
-        </div>
+      <ChatInterface
+        isMatched={isMatched}
+        partnerDisconnected={partnerDisconnected}
+        messages={messages}
+        isTyping={isTyping}
+        message={message}
+        setMessage={setMessage}
+        handleTyping={handleTyping}
+        handleSendMessage={handleSendMessage}
+        handleFindNewChat={handleFindNewChat}
+        messagesEndRef={messagesEndRef}
+      />
 
-        <div className="p-4 h-72 overflow-y-auto bg-gray-50 border border-gray-200 rounded-lg">
-          {messages.map((msg, index) => (
-            <div key={index} className={`mb-3 ${msg.isMe ? "text-right" : "text-left"}`}>
-              <div className={`inline-block p-3 rounded-lg border-2 shadow-md ${msg.isMe ? "bg-gray-400 border-gray-300 text-white" : "bg-gray-200 border-gray-300 text-gray-800"}`}>
-                <div>{msg.text}</div>
-                <div className="text-xs mt-1 text-gray-600">{msg.timestamp}</div>
-              </div>
-            </div>
-          ))}
-          {isTyping && <div className="text-gray-500 text-sm">Member tengah taip...</div>}
-          <div ref={messagesEndRef} />
-        </div>
+      {/* Popup for Finding New Chat */}
+      <Popup
+        show={showPopup}
+        title="Confirm nak cari member baru?"
+        onConfirm={confirmFindNewChat}
+        onCancel={() => setShowPopup(false)}
+        confirmLabel="Ya"
+        cancelLabel="Tak"
+        confirmColor="green"
+        cancelColor="pink"
+      />
 
-        <div className="p-4 border-t border-gray-300 flex flex-row gap-3">
-          <input
-            type="text"
-            placeholder="Tulis something..."
-            value={message}
-            onChange={(e) => {
-              setMessage(e.target.value);
-              handleTyping();
-            }}
-            onKeyPress={(e) => {
-              if (e.key === "Enter") handleSendMessage();
-            }}
-            className="w-full p-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-400"
-          />
-          <button onClick={handleSendMessage} className="bg-gray-400 p-3 rounded-lg border-2 border-gray-300 hover:bg-gray-500">
-            <IoSend className="text-white size-6" />
-          </button>
-        </div>
-        {isMatched && ( 
-          <div className="p-4 border-t border-gray-300">
-            <button onClick={handleFindNewChat} className="w-full bg-red-400 text-white py-3 rounded-lg border-2 border-red-300 hover:bg-red-500">
-              Cari Member Baru
-            </button>
-          </div>
-        )}
-      </div>
+      {/* Popup for Partner Disconnected */}
+      <Popup
+        show={showPopup1}
+        title="Member dah cau, cari baru la ekk?"
+        onConfirm={handleNewChatAfterDisconnect}
+        confirmLabel="Ya"
+        confirmColor="green"
+      />
 
-      {showPopup && (
-        <div className="fixed inset-0 flex bg-gray-600/25  items-center justify-center backdrop-blur-xs">
-          <div className="bg-white p-6 rounded-lg shadow-xl text-center">
-            <p className="mb-4 text-lg font-semibold">Confirm nak cari member baru?</p>
-            <div className="flex justify-center gap-4">
-              <button onClick={confirmFindNewChat} className="bg-gray-500 text-white px-4 py-2 rounded-lg border-2 border-gray-400 hover:bg-gray-600">
-                Ya
-              </button>
-              <button onClick={() => setShowPopup(false)} className="bg-gray-400 text-white px-4 py-2 rounded-lg border-2 border-gray-300 hover:bg-gray-500">
-                Tak
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {showPopup1 && (
-        <div className="fixed inset-0 flex bg-gray-600/25  items-center justify-center backdrop-blur-xs">
-          <div className="bg-white p-6 rounded-lg shadow-xl text-center">
-            <p className="mb-4 text-lg font-semibold">Confirm nak cari member baru?</p>
-            <div className="flex justify-center gap-4">
-              <button onClick={handleNewChatAfterDisconnect} className="bg-gray-500 text-white px-4 py-2 rounded-lg border-2 border-gray-400 hover:bg-gray-600">
-                Ya
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Popup for Finding Matches */}
+      <Popup
+        show={showFinfMatches}
+        title="Ready Nak Cari Member Baru?"
+        onConfirm={handleNewChatAfterDisconnect}
+        confirmLabel="Ye Bro"
+        confirmColor="blue"
+      />
 
-    <div className="mt-5 text-center text-gray-500 text-sm">
+      {/* Footer */}
+      <div className="mt-5 text-center text-gray-500 text-sm">
         <p>by aimanazmi, seorang yang rajin bila malas ✨</p>
         <p>support saya dekat <a className="underline" target="_blank" href="https://sociabuzz.com/aimanazmi/tribe">SociaBuzz.</a> Maceh</p>
       </div>

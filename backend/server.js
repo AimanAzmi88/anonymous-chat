@@ -23,7 +23,7 @@ io.on("connection", (socket) => {
 
   // Add user to the waiting list
   users.set(socket.id, { partner: null });
-  addToWaitingList(socket.id);
+  // addToWaitingList(socket.id);
 
   // Send a message to the partner
   socket.on("sendMessage", (message) => {
