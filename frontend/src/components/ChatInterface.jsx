@@ -17,17 +17,15 @@ const ChatInterface = ({
 }) => {
   return (
     <div className="w-full max-w-lg bg-white rounded-xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-4 border-black p-5" style={{ height: '80vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Status Bar */}
 
 
-      {/* Messages Container with Background Image */}
       <div
         className=" flex-1 overflow-y-auto border-2 border-black rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
         style={{
-          backgroundImage: `url(/background.jpg)`, // Path to the image in the public folder
-          backgroundSize: 'cover', // Ensure the image covers the entire container
-          backgroundPosition: 'center', // Center the image
-          backgroundRepeat: 'no-repeat', // Prevent the image from repeating
+          backgroundImage: `url(/background.jpg)`, 
+          backgroundSize: 'cover', 
+          backgroundPosition: 'center', 
+          backgroundRepeat: 'no-repeat', 
         }}
       >
         <div className="bg-[#B399D4] rounded-t-sm text-center text-gray-800 font-bold text-lg border-2">
@@ -42,7 +40,10 @@ const ChatInterface = ({
           <div key={index} className={`mb-3 ${msg.isMe ? "text-right" : "text-left"}`}>
             <div className={`inline-block p-3 rounded-lg border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${msg.isMe ? "bg-[#4C8BF5] text-white" : "bg-[#FFD600] text-gray-800"}`}>
               <div>{msg.text}</div>
-              <div className="text-xs mt-1 text-gray-600">{msg.timestamp}</div>
+              {!msg.isMe ? <div className="text-xs mt-1 text-gray-600">{msg.formattedTimestamp}</div>:
+              <div className="text-xs mt-1 text-gray-600">{msg.timestamp}</div>}
+            
+
             </div>
           </div>
         ))}
@@ -75,7 +76,6 @@ const ChatInterface = ({
           </button>
         </div>
 
-        {/* Find New Chat Button */}
         {isMatched && ( 
           <Button
             onClick={handleFindNewChat}

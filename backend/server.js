@@ -8,7 +8,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL, // Allow your frontend to connect
+    origin: process.env.FRONTEND_URL,
     methods: ["GET", "POST"],
   },
 });
@@ -21,16 +21,13 @@ const waitingUsers = new Set(); // Stores socketIds of users waiting for a match
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  // Add user to the waiting list
   users.set(socket.id, { partner: null });
-  // addToWaitingList(socket.id);
 
-  // Send a message to the partner
-  socket.on("sendMessage", (message) => {
+  socket.on("sendMessage", (data) => {
     const user = users.get(socket.id);
     if (user && user.partner) {
-      const timestamp = new Date().toLocaleTimeString(); // Get the current time
-      io.to(user.partner).emit("receiveMessage", { text: message, timestamp });
+      // Forward the message and raw Date object to the partner
+      io.to(user.partner).emit("receiveMessage", data);
     }
   });
 

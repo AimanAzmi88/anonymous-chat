@@ -4,7 +4,7 @@ import { IoSend } from "react-icons/io5";
 import Button from "./components/Button";
 import Banner from "./components/Banner";
 import Popup from "./components/Popup";
-import ChatInterface from "./components/ChatInterface"; // Import the ChatInterface component
+import ChatInterface from "./components/ChatInterface"; 
 
 const socket = io(import.meta.env.VITE_SOCKET_URL);
 
@@ -20,7 +20,6 @@ const App = () => {
   const [showFinfMatches, setShowFinfMatches] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Create a ref for the audio element
   const audioRef = useRef(new Audio("/notification.mp3"));
 
   const scrollToBottom = () => {
@@ -33,9 +32,9 @@ const App = () => {
 
   useEffect(() => {
     socket.on("receiveMessage", ({ text, timestamp }) => {
-      setMessages((prev) => [...prev, { text, isMe: false, timestamp }]);
+      const formattedTimestamp = new Date(timestamp).toLocaleTimeString();
+      setMessages((prev) => [...prev, { text, isMe: false, formattedTimestamp }]);
 
-      // Play the notification sound when a new message is received
       if (audioRef.current) {
         audioRef.current.play().catch((error) => {
           console.error("Failed to play notification sound:", error);
@@ -75,10 +74,17 @@ const App = () => {
 
   const handleSendMessage = () => {
     if (message.trim()) {
-      const timestamp = new Date().toLocaleTimeString();
-      socket.emit("sendMessage", message);
-      setMessages((prev) => [...prev, { text: message, isMe: true, timestamp }]);
+      const timestamp = new Date(); 
+  
+      socket.emit("sendMessage", { text: message, timestamp });
+  
+      setMessages((prev) => [
+        ...prev,
+        { text: message, isMe: true, timestamp: timestamp.toLocaleTimeString() },
+      ]);
+  
       setMessage("");
+  
       socket.emit("stoppedTyping");
     }
   };
@@ -113,7 +119,6 @@ const App = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#F8D6B3] to-gray-200 text-gray-800">
-      {/* Disclaimer Popup */}
       {showDisclaimer && (
         <Popup
           show={showDisclaimer}
@@ -130,10 +135,8 @@ const App = () => {
         </Popup>
       )}
 
-      {/* Banner Section */}
       <Banner />
 
-      {/* Chat Interface */}
       <ChatInterface
         isMatched={isMatched}
         partnerDisconnected={partnerDisconnected}
@@ -147,7 +150,6 @@ const App = () => {
         messagesEndRef={messagesEndRef}
       />
 
-      {/* Popup for Finding New Chat */}
       <Popup
         show={showPopup}
         title="Confirm nak cari member baru?"
@@ -159,7 +161,6 @@ const App = () => {
         cancelColor="pink"
       />
 
-      {/* Popup for Partner Disconnected */}
       <Popup
         show={showPopup1}
         title="Member dah cau, cari baru la ekk?"
@@ -168,7 +169,6 @@ const App = () => {
         confirmColor="green"
       />
 
-      {/* Popup for Finding Matches */}
       <Popup
         show={showFinfMatches}
         title="Ready Nak Cari Member Baru?"
@@ -177,7 +177,6 @@ const App = () => {
         confirmColor="blue"
       />
 
-      {/* Footer */}
       <div className="mt-5 text-center text-gray-500 text-sm">
         <p>by aimanazmi, seorang yang rajin bila malas ✨</p>
         <p>support saya dekat <a className="underline" target="_blank" href="https://sociabuzz.com/aimanazmi/tribe">SociaBuzz.</a> Maceh</p>
